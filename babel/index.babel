@@ -1,0 +1,117 @@
+class Leaderboard extends React.Component {
+ constructor() {
+  super();
+  this.state = {
+   recent: [],
+   alltime: [],
+   recentNow: null
+  }
+ }
+ componentDidMount() {
+  var self = this;
+  fetch('https://fcctop100.herokuapp.com/api/fccusers/top/recent').then(
+   function(response) {
+    response.json().then(function(data) {
+     self.setState( {
+      recent: data,
+      recentNow: true
+     });
+    });
+   }
+  ).catch(function(err) {
+   console.log('error', err);
+  });
+  fetch('https://fcctop100.herokuapp.com/api/fccusers/top/alltime').then(
+   function(response) {
+    response.json().then(function(data) {
+     self.setState( {
+      alltime: data
+     });
+    });
+   }
+  ).catch(function(err) {
+   console.log('error', err);
+  });
+ }
+ handleToggle () {
+  if (this.state.recentNow) {
+   this.setState({recentNow: false})
+  } else {
+   this.setState({recentNow: true})
+  }
+ }
+ render () {
+  var iconSpan, data = [];
+  if (this.state.recentNow == true) {
+   data = this.state.recent;
+   
+  } else {
+   data = this.state.alltime;
+  }
+  return (
+  <div>
+   <Header />
+   <div className="col-xs-12 col-sm-8 col-sm-offset-2 col-md-6 col-md-offset-3">
+    <div className="header">Leaderboard in Points</div>
+    <table className="table table-striped">
+    <SetHeader toggleEvent={this.handleToggle.bind(this)} recentNow={this.state.recentNow} />
+    <div></div>
+    <SetBody tableData={data} />
+    </table>
+   </div>
+   </div>
+  )
+ }
+}
+
+class SetHeader extends React.Component {
+ render(){
+  return (
+     <thead className="tableHead">
+      <tr>
+       <th>#</th>
+       <th className="hidden-xs">Camper</th>
+       <th>Name</th>
+       <th onClick={this.props.toggleEvent} className="sortBy">Past 30 Days {this.props.recentNow ? <span className="glyphicon glyphicon-menu-down"></span> : <span className="glyphicon glyphicon-menu-up"></span>}</th>
+       <th onClick={this.props.toggleEvent} className="sortBy">All Time {!this.props.recentNow ? <span className="glyphicon glyphicon-menu-down"></span> : <span className="glyphicon glyphicon-menu-up"></span>}</th>
+      </tr>
+     </thead>
+  );
+ }
+}
+
+class SetBody extends React.Component {
+ render () {
+  return (
+   <tbody className="tableBody">
+    {this.props.tableData.map((val, i) => {
+     return (
+      <tr>
+       <td>{i + 1}</td>
+       <td className="hidden-xs"><img src={val.img} className="img-circle camperImg"/></td>
+       <td>
+        <a target="blank" href={"https://www.freecodecamp.com/" + val.username}>{val.username}</a>
+       </td>
+       <td>{val.recent}</td>
+       <td>{val.alltime}</td>
+      </tr>
+     )
+    })
+    }
+   </tbody>
+  )
+ }
+}
+class Header extends React.Component {
+ render() {
+  return (
+   <header>
+    <a href="https://www.freecodecamp.com">
+     <img className="fcclogo" src="https://s3.amazonaws.com/freecodecamp/freecodecamp_logo.svg" alt="FreeCodeCamp logo" />
+    </a>
+   </header>
+  );
+ }
+}
+
+ReactDOM.render(<Leaderboard />, document.getElementById('displayIt'));
